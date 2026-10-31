@@ -25,7 +25,9 @@ Journey files downloaded from __https://cycling.data.tfl.gov.uk/__ :
 
 
 ## Data Issues
-
-- Inconsistent column names in terms of capitalisation and spacing  
+For cycle hire data from 2016
+- Inconsistent column names in terms of capitalisation and spacing that make it harder to query column names
+    e.g. 'End Date' vs 'EndStation Id'
 - Incorrect data formats (should be ints for duration and ids, timestamps)
+    e.g. Start Date is currently string -> should be datetime, StartStation Id is also string -> should be int
 - Several rows with null values for EndStation Id and EndStation Name in older files
