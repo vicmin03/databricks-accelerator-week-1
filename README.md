@@ -12,17 +12,6 @@ Journey files downloaded from __https://cycling.data.tfl.gov.uk/__ :
 - 06JourneyDataExtract18May2016-24May2016.csv	
 - 07JourneyDataExtract25May2016-31May2016.csv
 
-- 435JourneyDataExtract01Jan2026-15Jan2026.csv	
-- 436JourneyDataExtract16Jan2026-31Jan2026.csv	
-- 437JourneyDataExtract01Feb2026-14Feb2026.csv	
-- 438JourneyDataExtract15Feb2026-28Feb2026.csv	
-- 439JourneyDataExtract01Mar2026-15Mar2026.csv	
-- 440JourneyDataExtract15Mar2026-31Mar2026.csv	
-- 441JourneyDataExtract01Apr2026-15Apr2026.csv	
-- 442JourneyDataExtract16Apr2026-30Apr2026.cs
-- 443JourneyDataExtract01May2026-16May2026.csv	
-- 444JourneyDataExtract17May2026-31May2026.csv
-
 
 ## Data Issues
 For cycle hire data from 2016
@@ -31,3 +20,14 @@ For cycle hire data from 2016
 - Incorrect data formats (should be ints for duration and ids, timestamps)
     e.g. Start Date is currently string -> should be datetime, StartStation Id is also string -> should be int
 - Several rows with null values for EndStation Id and EndStation Name in older files
+
+## Cleaning Rules
+
+Data was cleaned to remove invalid/duplicate/missing data in the following ways:
+- `End Date` and `Start Date` columns were converted to timestamps in `end_time` and `start_time` columns
+- `Duration` in seconds was converted to `duration_minutes` by dividing by 60
+- Removed Duplicate rows with repeated `rental_id`s - removed 0 rows
+- Removed rows with `duration_minutes` equal to or less than 0 minutes as not valid hires - removed 4419 rows
+- Removed rows with duration greater than 24 hours (TFL has a 24 hour limit on a single bike hire) - removed 1361 rows
+- Removed rows with no end station were as invalid/unfinished hire with no end destination - removed 22402 rows
+
