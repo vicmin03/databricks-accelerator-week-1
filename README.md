@@ -31,3 +31,11 @@ Data was cleaned to remove invalid/duplicate/missing data in the following ways:
 - Removed rows with duration greater than 24 hours (TFL has a 24 hour limit on a single bike hire) - removed 1361 rows
 - Removed rows with no end station were as invalid/unfinished hire with no end destination - removed 22402 rows
 
+## Future Steps
+
+In order to load next month's files and further tfl cycle hire files in future, a similar process should be set up to automatically ingest and transform new data.
+
+1. Ingest the raw csv files into the bronze layer with an auto loader or using `COPY INTO`, making sure to fill in details such as the original source file name and time ingested to trace changes and loads.
+2. Check the new data files for differences in column names/data formats/types that need to be cleaned and resolved before transforming data and joining with the silver layer. Use MERGE to update existing rows and insert new records without potentially introducing duplicates to silver layer table.
+3. Rebuild gold tables to take new data into account
+4. To set up a sustainable pipeline, set up a job to orchestrate the three steps in an automated workflow that runs every month when new data arrives
