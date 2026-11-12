@@ -17,9 +17,12 @@ Journey files downloaded from __https://cycling.data.tfl.gov.uk/__ :
 For cycle hire data from 2016
 - Inconsistent column names in terms of capitalisation and spacing that make it harder to query column names
     e.g. 'End Date' vs 'EndStation Id'
-- Incorrect data formats (should be ints for duration and ids, timestamps)
+- Incorrect data formats - all currently strings, should be ints for duration and ids, timestamps for start/end date etc.
     e.g. Start Date is currently string -> should be datetime, StartStation Id is also string -> should be int
 - Several rows with null values for EndStation Id and EndStation Name in older files
+- Duration given in seconds without clear indication; not compatible with newer files which give duration in ms and mins
+- Min duration = 0 s which is invalid cycle hire
+- Several empty columns which give no useful information (`_c9`, `_c10`, `_c11`)
 
 ## Cleaning Rules
 
