@@ -12,7 +12,6 @@ Journey files downloaded from __https://cycling.data.tfl.gov.uk/__ :
 - 06JourneyDataExtract18May2016-24May2016.csv	
 - 07JourneyDataExtract25May2016-31May2016.csv
 
-
 ## Data Issues
 For cycle hire data from 2016
 - Inconsistent column names in terms of capitalisation and spacing that make it harder to query column names
@@ -33,6 +32,16 @@ Data was cleaned to remove invalid/duplicate/missing data in the following ways:
 - Removed rows with `duration_minutes` equal to or less than 0 minutes as not valid hires - removed 4419 rows
 - Removed rows with duration greater than 24 hours (TFL has a 24 hour limit on a single bike hire) - removed 1361 rows
 - Removed rows with no end station were as invalid/unfinished hire with no end destination - removed 22402 rows
+
+
+## How to Run
+
+Prerequisite: Download the specified files from __https://cycling.data.tfl.gov.uk/__
+1. In your Databricks workspace, add this repository as a Git folder and open the notebooks.
+2. Attach a running compute resource to each notebook.
+3. Ensure the Unity Catalog objects `workspace.tfl` and the `raw` volume exist. Upload the source CSV files to `/Volumes/workspace/tfl/raw`. 
+4. Run the notebooks in order: `01_explore`, `02_bronze`, `03_silver`, then `04_gold`. Use **Run all** in each notebook. The later notebooks read and write tables in `workspace.tfl`.
+
 
 ## Future Steps
 
