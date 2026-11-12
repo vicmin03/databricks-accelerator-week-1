@@ -23,20 +23,16 @@ For cycle hire data from 2016
 - Min duration = 0 s which is invalid cycle hire
 - Several empty columns which give no useful information (`_c9`, `_c10`, `_c11`)
 
-## Cleaning Rules
-
-Data was cleaned to remove invalid/duplicate/missing data in the following ways:
-- `End Date` and `Start Date` columns were converted to timestamps in `end_time` and `start_time` columns
-- `Duration` in seconds was converted to `duration_minutes` by dividing by 60
-- Removed Duplicate rows with repeated `rental_id`s - removed 0 rows
-- Removed rows with `duration_minutes` equal to or less than 0 minutes as not valid hires - removed 4419 rows
-- Removed rows with duration greater than 24 hours (TFL has a 24 hour limit on a single bike hire) - removed 1361 rows
-- Removed rows with no end station were as invalid/unfinished hire with no end destination - removed 22402 rows
-
+## Expectations
+Expectations were added to the pipeline to validate rows:
+- `CONSTRAINT require_rental_id EXPECT (rental_id IS NOT NULL) ON VIOLATION FAIL UPDATE` to ensure rental_ids are present as primary keys - if not, then stop update 
+- `CONSTRAINT positive_duration EXPECT (duration_minutes > 0) ON VIOLATION DROP ROW` to ensure duration is greater than 0, otherwise invalid hire
+- `CONSTRAINT duration_under_24_hours EXPECT (duration_minutes < 1440) ON VIOLATION DROP ROW` to ensure duration is under maximum duration 24 hours, otherwise invalid journey/missing bike
+- `CONSTRAINT needs_end_station EXPECT (end_station_id IS NOT NULL) ON VIOLATION DROP ROW` to only accept rows with end station otherwise invalid journey
 
 ## How to Run
 
-Prerequisite: Download the specified files from __https://cycling.data.tfl.gov.uk/__
+Prerequisite: Download the specified files from __https://cycling.data.tfl.gov.uk/__ 
 1. In your Databricks workspace, add this repository as a Git folder and open the notebooks.
 2. Attach a running compute resource to each notebook.
 3. Ensure the Unity Catalog objects `workspace.tfl` and the `raw` volume exist. Upload the source CSV files to `/Volumes/workspace/tfl/raw`. 
