@@ -23,7 +23,10 @@ FROM STREAM read_files(
 -- Define silver as materialized view with renaming, type conversion, date parsing and deduplication
 
 CREATE OR REFRESH MATERIALIZED VIEW silver (
-    CONSTRAINT no_duplicates EXPECT (rental_id IS NOT NULL) ON VIOLATION DROP ROW
+    CONSTRAINT require_rental_id EXPECT (rental_id IS NOT NULL) ON VIOLATION FAIL UPDATE,
+    CONSTRAINT positive_duration EXPECT (duration_minutes > 0) ON VIOLATION DROP ROW,
+    CONSTRAINT duration_under_24_hours EXPECT (duration_minutes < 1440) ON VIOLATION DROP ROW,
+    CONSTRAINT needs_end_station EXPECT (end_station_id IS NOT NULL) ON VIOLATION DROP ROW
 )
 COMMENT 'Cleaned TfL journey data'
 AS SELECT DISTINCT
