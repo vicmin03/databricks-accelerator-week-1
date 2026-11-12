@@ -1,0 +1,111 @@
+-- Build bronze as a streaming table
+
+CREATE OR REFRESH STREAMING TABLE bronze 
+COMMENT 'Raw TfL journey files'
+AS SELECT 
+    `Rental Id` AS rental_id,
+    `Duration` AS duration,
+    `Bike Id` AS bike_id,
+    `End Date` AS end_date,
+    `EndStation Id` AS end_station_id,
+    `EndStation Name` AS end_station_name,
+    `Start Date` AS start_date,
+    `StartStation Id` AS start_station_id,
+    `StartStation Name` AS start_station_name,
+    _metadata.file_path AS source_file,
+    current_timestamp() AS ingested_at
+FROM STREAM read_files(
+    '/Volumes/workspace/tfl/raw',
+    format => 'csv',
+    header => true
+);
+
+-- Define silver as materialized view with renaming, type conversion, date parsing and deduplication
+
+CREATE OR REFRESH MATERIALIZED VIEW silver (
+    CONSTRAINT no_duplicates EXPECT (rental_id IS NOT NULL) ON VIOLATION DROP ROW
+)
+COMMENT 'Cleaned TfL journey data'
+AS SELECT DISTINCT
+    CAST(rental_id AS BIGINT) AS rental_id,
+    CAST(duration AS INT) / 60 AS duration_minutes,
+    CAST(bike_id AS INT) AS bike_id,
+    coalesce(
+        try_to_timestamp(start_date, 'yyyy-MM-dd HH:mm'),
+        try_to_timestamp(start_date, 'dd/MM/yyyy HH:mm')
+    ) AS start_time,
+    CAST(start_station_id AS INT) AS start_station_id,
+    start_station_name AS start_station_name,
+        coalesce(
+        try_to_timestamp(end_date, 'yyyy-MM-dd HH:mm'),
+        try_to_timestamp(end_date, 'dd/MM/yyyy HH:mm')
+    ) AS end_time,
+    CAST(end_station_id AS INT) AS end_station_id,
+    end_station_name AS end_station_name
+FROM bronze;
+
+-- Build gold tables
+
+CREATE OR REFRESH MATERIALIZED VIEW gold_daily_hires
+COMMENT 'Number of hires and average duration of trips per day'
+AS SELECT 
+        start_time::date AS date,
+        COUNT(*) AS hires,
+        ROUND(AVG(duration_minutes), 2) AS avg_duration_minutes
+    FROM silver
+    GROUP BY start_time::date
+    ORDER BY date;
+
+CREATE OR REFRESH MATERIALIZED VIEW gold_station_activity
+COMMENT 'Summary of hires and returns per station per month'
+AS (WITH starts AS (
+        SELECT 
+            start_station_id AS station_id,
+            month(start_time) AS month,
+            COUNT(*) AS starting_hires
+        FROM silver
+        GROUP BY start_station_id, month(start_time)
+    ),
+    ends AS (
+        SELECT 
+            end_station_id AS station_id,
+            month(end_time) AS month,
+            COUNT(*) AS ending_hires
+        FROM silver
+        GROUP BY end_station_id, month(end_time)
+    )
+    SELECT 
+        COALESCE(s.station_id, e.station_id) AS station_id,
+        COALESCE(s.month, e.month) AS month,
+        COALESCE(s.starting_hires, 0) AS starting_hires,
+        COALESCE(e.ending_hires, 0) AS ending_hires
+    FROM starts s
+    FULL OUTER JOIN ends e
+        ON s.station_id = e.station_id
+        AND s.month = e.month
+    ORDER BY station_id, month);
+
+CREATE OR REFRESH MATERIALIZED VIEW gold_popular_routes 
+COMMENT 'Top 500 most popular start and end station pairs with typical journey times'
+AS SELECT 
+        start_station_id,
+        start_station_name,
+        end_station_id, 
+        end_station_name,
+        COUNT(*) as hires,
+        ROUND(AVG(duration_minutes), 2) as avg_duration_minutes
+    FROM silver
+    GROUP BY start_station_id, start_station_name, end_station_id, end_station_name
+    ORDER BY hires DESC
+    LIMIT 500;  
+
+CREATE OR REFRESH MATERIALIZED VIEW gold_start_hours 
+COMMENT 'Number of hires and average duration of trips per hour of day'
+AS SELECT       
+        hour(start_time) AS start_hour,
+        COUNT(*) as hires,
+        ROUND(AVG(duration_minutes), 2) AS avg_duration_minutes
+    FROM silver
+    GROUP BY hour(start_time)
+    ORDER BY start_hour;
+    
