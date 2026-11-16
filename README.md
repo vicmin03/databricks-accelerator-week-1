@@ -1,6 +1,6 @@
-# Databricks Accelerator Week 1 Project - TfL Cycle Hire
+# Databricks Accelerator Project - TfL Cycle Hire
 
-Journey files downloaded from __https://cycling.data.tfl.gov.uk/__ :
+Journey files downloaded from https://cycling.data.tfl.gov.uk/ :
 
 - 01aJourneyDataExtract10Jan16-23Jan16.csv	
 - 01bJourneyDataExtract24Jan16-06Feb16.csv	
@@ -47,3 +47,20 @@ In order to load next month's files and further tfl cycle hire files in future, 
 2. Check the new data files for differences in column names/data formats/types that need to be cleaned and resolved before transforming data and joining with the silver layer. Use MERGE to update existing rows and insert new records without potentially introducing duplicates to silver layer table.
 3. Rebuild gold tables to take new data into account
 4. To set up a sustainable pipeline, set up a job to orchestrate the three steps in an automated workflow that runs every month when new data arrives
+
+
+## Jobs
+
+I created a job scheduled to run each morning that would check for new files in the given volume and trigger the pipeline to ingest new data if present. Below are three runs under different conditions:
+
+1. No new files - the check returns file_count of 0 so the pipeline is not triggered
+
+![alt text](<screenshots/screenshot-1.png>)
+
+2. New files - new .csv file added to volume so file_count is greater than 0 and pipeline is triggered to ingest, clean and process new data
+
+![alt text](screenshots/screenshot-2.png)
+
+3. Failure - I purposefully broke the pipeline so it would fail the job. It attempted two retries before ultimately failing. I used Repair Run to rerun only the last pipeline step after fixing the pipeline code.
+
+![alt text](screenshots/screenshot-3.png)
