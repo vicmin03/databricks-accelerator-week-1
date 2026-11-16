@@ -49,7 +49,7 @@ In order to load next month's files and further tfl cycle hire files in future, 
 4. To set up a sustainable pipeline, set up a job to orchestrate the three steps in an automated workflow that runs every month when new data arrives
 
 
-## Jobs
+## Scheduling Jobs
 
 I created a job scheduled to run each morning that would check for new files in the given volume and trigger the pipeline to ingest new data if present. Below are three runs under different conditions:
 
@@ -64,3 +64,34 @@ I created a job scheduled to run each morning that would check for new files in 
 3. Failure - I purposefully broke the pipeline so it would fail the job. It attempted two retries before ultimately failing. I used Repair Run to rerun only the last pipeline step after fixing the pipeline code.
 
 ![alt text](screenshots/screenshot-3.png)
+
+## Performance
+
+I introduced clustering based on the start_station_id column to speed up queries based on stations for common queries such as finding popular journey routes or stations. 
+
+For example, this query used to find the busiest stations in the month of May 2016 was run with and without clustering on the start_station_id column:
+
+```
+SELECT
+  start_station_id,
+  COUNT(*) as num_hires
+FROM
+  silver_journeys
+WHERE
+  month(start_time) = 5
+GROUP BY
+  start_station_id
+ORDER BY
+  COUNT(*) DESC
+LIMIT 100
+```
+
+Without `CLUSTER BY start_station_id`:
+![alt text](screenshots/unclustered_files.png)
+![alt text](screenshots/unclustered_ops.png)
+
+With `CLUSTER BY start_station_id`:
+![alt text](screenshots/clustered_files.png)
+![alt text](screenshots/clustered_ops.png)
+
+Clustering improved performance by grouping rows based on start_station_id and organising files so Databricks could skip files where start_station_id didn't match the min/max of each grouped file and filter/group necessary rows more quickly. 
