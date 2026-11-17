@@ -95,3 +95,18 @@ With `CLUSTER BY start_station_id`:
 ![alt text](screenshots/clustered_ops.png)
 
 Clustering improved performance by grouping rows based on start_station_id and organising files so Databricks could skip files where start_station_id didn't match the min/max of each grouped file and filter/group necessary rows more quickly. 
+
+## Dashboard and Analysis
+
+I added a task to my scheduled job to refresh the dashboard to ensure new data is shown and ready for analysts. There is a counter on the dashboard which features the time that the dashboard was last updated, based on the last successful pipeline run, and this is coloured green if it was updated in the last 24 hours or red if the data is stale.
+
+Questions Margot wants answered:
+- How is usage changing over time and how does it compare with last week/month?
+- Which stations are busiest?
+- When are the busiest times for hires?
+- How long are people hiring bikes for?
+- What are the most common journey routes?
+
+Screenshots of the Dashboard:
+![Screenshot of TfL Cycle Hire Dashboard in Databricks](screenshots/dashboard.png)
+![Second screenshot of dashboard](screenshots/dashboard_2.png)
