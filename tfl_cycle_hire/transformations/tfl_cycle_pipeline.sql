@@ -29,6 +29,7 @@ CREATE OR REFRESH MATERIALIZED VIEW silver (
     CONSTRAINT needs_end_station EXPECT (end_station_id IS NOT NULL) ON VIOLATION DROP ROW
 )
 COMMENT 'Cleaned TfL journey data'
+CLUSTER BY (start_station_id)
 AS SELECT DISTINCT
     CAST(rental_id AS BIGINT) AS rental_id,
     CAST(duration AS INT) / 60 AS duration_minutes,
