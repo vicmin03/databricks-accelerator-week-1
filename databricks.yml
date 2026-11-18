@@ -1,0 +1,12 @@
+bundle:
+  name: tfl_cycle_hire
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+  prod:
+    mode: production
