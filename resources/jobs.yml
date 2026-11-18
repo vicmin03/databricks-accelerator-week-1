@@ -1,0 +1,52 @@
+resources:
+  jobs:
+    tfl_daily:
+      name: tfl_daily_auto
+      tasks:
+        - task_key: check_new_files
+          notebook_task:
+            notebook_path: /Workspace/Users/vicmin03@outlook.com/databricks-accelerator-week-1/check_new_files
+            source: WORKSPACE
+        - task_key: have_new_files
+          depends_on:
+            - task_key: check_new_files
+          condition_task:
+            op: GREATER_THAN
+            left: "{{tasks.check_new_files.values.file_count}}"
+            right: "0"
+        - task_key: run_cycle_hire_pipeline
+          depends_on:
+            - task_key: have_new_files
+              outcome: "true"
+          pipeline_task:
+            pipeline_id: 4f06e036-889a-418f-bf04-50484123400e
+          max_retries: 2
+          min_retry_interval_millis: 300000
+          email_notifications:
+            on_failure:
+              - vicmin03@outlook.com
+        - task_key: refresh_dashboard
+          depends_on:
+            - task_key: run_cycle_hire_pipeline
+          dashboard_task:
+            subscription:
+              attachment:
+                page_attachment: {}
+            warehouse_id: 3ed393d10ed11586
+            dashboard_id: 01f1e273f0b819c9bdcd0d1eaf215c5c
+          max_retries: 2
+          min_retry_interval_millis: 900000
+      queue:
+        enabled: true
+      parameters:
+        - name: raw_path
+          default: /Volumes/workspace/tfl/raw/
+      performance_target: PERFORMANCE_OPTIMIZED
+      triggers:
+        - pause_status: UNPAUSED
+          file_arrival:
+            url: /Volumes/workspace/tfl/raw/
+        - pause_status: UNPAUSED
+          schedule:
+            quartz_cron_expression: 59 0 7 * * ?
+            timezone_id: Europe/London

@@ -1,0 +1,14 @@
+resources:
+  pipelines:
+    pipeline_tfl_cycle_hire:
+      name: tfl_cycle_hire_auto
+      libraries:
+        - glob:
+            include: /Workspace/Users/vicmin03@outlook.com/databricks-accelerator-week-1/tfl_cycle_hire/transformations/**
+      schema: tfl_lakehouse
+      continuous: false
+      photon: true
+      channel: CURRENT
+      catalog: workspace
+      serverless: true
+      root_path: /Workspace/Users/vicmin03@outlook.com/databricks-accelerator-week-1/tfl_cycle_hire
