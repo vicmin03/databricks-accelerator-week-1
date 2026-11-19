@@ -119,3 +119,10 @@ I uploaded a file with a different format and confirmed that the pipeline and jo
 
 ![alt text](screenshots/failed_run.png)
 ![alt text](screenshots/failure_email.png)
+
+## Declarative Automation Bundle
+
+The deployment environments, job and pipeline for this project are defined with YAML in order to collaborate on and cleanly define how to build the databricks resources. In order to define the bundle and deploy the resources to a development environment:
+1. To validate the bundle: `databricks bundle validate -t dev` 
+2. To preview what will be created/updated: `databricks bundle plan -t dev`
+3. To deploy resources to development environment: `databricks bundle deploy -t dev`
