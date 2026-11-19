@@ -110,3 +110,12 @@ Questions Margot wants answered:
 Screenshots of the Dashboard:
 ![Screenshot of TfL Cycle Hire Dashboard in Databricks](screenshots/dashboard.png)
 ![Second screenshot of dashboard](screenshots/dashboard_2.png)
+
+
+
+## Handling Failure
+
+I uploaded a file with a different format and confirmed that the pipeline and job fail with a maximum number of 2 retries and a   a notification email sent out informing users of the failure. The relevant tasks can then be fixed and Repair Run used to rerun the failing tasks within the job.
+
+![alt text](screenshots/failed_run.png)
+![alt text](screenshots/failure_email.png)
